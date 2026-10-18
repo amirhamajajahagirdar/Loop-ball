@@ -1,0 +1,1540 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset=utf8>
+  <meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <style>
+    :root {
+      color-scheme: light;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px)
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px)
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font: 14px -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #fff;
+      color: #000
+    }
+
+    img {
+      max-width: 100%
+    }
+
+    [hidden]:not([hidden=until-found i]) {
+      display: none !important
+    }
+  </style>
+</head>
+
+<body>
+  <title>Loop Ball</title>
+  <meta name="claude:viewport-fit-sides" content="cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap"
+    rel="stylesheet">
+  <style>
+    /* Layout: one phone-shaped stage (#app) with stacked screens: splash > home > intro > play. Chunky ink outlines over a sunny field. Single committed look, so no dark variant. */
+    :root {
+      --sky: #BFE8F5;
+      --sky-d: #8FD3EE;
+      --field: #6DBB3F;
+      --field-d: #4B9A2B;
+      --felt: #D5E83A;
+      --felt-d: #93A91B;
+      --ink: #16303F;
+      --paper: #FFFDF2;
+      --teal: #1FB5A8;
+      --orange: #F58A2B;
+      --mint: #9FE8C8;
+      --sneak: #FFD43B;
+      --bad: #FF5A5A;
+      --h-blue: #3A7BFF;
+      --h-green: #2ECC71;
+      --h-orange: #FF8A1F;
+      --h-purple: #8E5BFF;
+      --h-pink: #FF5FA2;
+      --font-display: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
+      --font-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      color-scheme: light;
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      box-sizing: border-box;
+      overflow: hidden;
+      padding-block: 8px;
+      padding-left: max(16px, env(safe-area-inset-left, 0px));
+      padding-right: max(16px, env(safe-area-inset-right, 0px));
+      background: var(--field-d);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer
+    }
+
+    button:focus-visible {
+      outline: 4px solid var(--orange);
+      outline-offset: 2px
+    }
+
+    #app {
+      position: relative;
+      height: 100%;
+      max-width: 460px;
+      margin: 0 auto;
+      background: var(--sky);
+      border: 4px solid var(--ink);
+      border-radius: 24px;
+      overflow: hidden
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0
+    }
+
+    h1,
+    h2,
+    .disp {
+      font-family: var(--font-display);
+      font-weight: 800;
+      margin: 0;
+      line-height: 1
+    }
+
+    .cta {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 24px;
+      padding: 12px 28px;
+      background: var(--orange);
+      color: #fff;
+      border: 4px solid var(--ink);
+      border-radius: 18px;
+      box-shadow: 0 6px 0 var(--ink);
+      text-shadow: 0 2px 0 rgba(22, 48, 63, .35);
+      transition: transform .08s, box-shadow .08s
+    }
+
+    .cta:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--ink)
+    }
+
+    .cta:disabled {
+      background: #B9C4C9;
+      box-shadow: 0 6px 0 #7C8E96;
+      text-shadow: none;
+      cursor: not-allowed
+    }
+
+    .ghost {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 15px;
+      padding: 6px 14px;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 12px;
+      box-shadow: 0 3px 0 var(--ink)
+    }
+
+    /* hero */
+    .hero {
+      position: absolute;
+      width: 60px;
+      height: 89px;
+      transition: transform 1.4s cubic-bezier(.5, 0, .3, 1), opacity .4s
+    }
+
+    .hero svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible
+    }
+
+    .hero .la,
+    .hero .lb {
+      transform-origin: 50px 92px;
+      animation: step .5s infinite ease-in-out alternate
+    }
+
+    .hero .lb {
+      animation-direction: alternate-reverse
+    }
+
+    .hero .arm {
+      transform-origin: 64px 62px;
+      animation: step .5s infinite ease-in-out alternate-reverse
+    }
+
+    .hero .bob {
+      animation: bob .25s infinite alternate ease-in-out
+    }
+
+    .hero.idle .la,
+    .hero.idle .lb,
+    .hero.idle .arm,
+    .hero.idle .bob {
+      animation: none
+    }
+
+    @keyframes step {
+      from {
+        transform: rotate(-30deg)
+      }
+
+      to {
+        transform: rotate(30deg)
+      }
+    }
+
+    @keyframes bob {
+      to {
+        transform: translateY(-3px)
+      }
+    }
+
+    /* splash */
+    #splash {
+      background: linear-gradient(var(--sky) 0 58%, var(--field) 58%);
+      align-items: center;
+      cursor: pointer
+    }
+
+    .logo {
+      margin-top: 7%;
+      text-align: center;
+      font-size: clamp(44px, 15vw, 66px);
+      color: var(--paper);
+      text-shadow: 0 5px 0 var(--ink), 3px 0 0 var(--ink), -3px 0 0 var(--ink), 0 -3px 0 var(--ink);
+      letter-spacing: .5px
+    }
+
+    .logo span {
+      display: block;
+      color: var(--sneak)
+    }
+
+    .stagefield {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 0
+    }
+
+    .ballwrap {
+      position: absolute;
+      right: 5%;
+      bottom: 16%;
+      width: min(74%, 320px)
+    }
+
+    .ballsvg {
+      width: 100%;
+      display: block;
+      overflow: visible
+    }
+
+    .hero.s1 {
+      left: 6%;
+      bottom: 14%
+    }
+
+    .tapline {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 4%;
+      text-align: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 22px;
+      color: var(--paper);
+      text-shadow: 0 3px 0 var(--ink);
+      animation: blink 1.2s infinite
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: .35
+      }
+    }
+
+    #btnDemo {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 3
+    }
+
+    /* home */
+    #home {
+      background: var(--sky)
+    }
+
+    .htop {
+      padding: 14px 16px 6px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between
+    }
+
+    .htop h2 {
+      font-size: 30px
+    }
+
+    .htop small {
+      font-weight: 800;
+      opacity: .7
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 8px 16px;
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      align-content: start
+    }
+
+    .tile {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 6px 8px;
+      background: var(--paper);
+      border: 4px solid var(--ink);
+      border-radius: 20px;
+      box-shadow: 0 6px 0 var(--ink);
+      transition: transform .1s, box-shadow .1s
+    }
+
+    .tile svg {
+      width: 58px;
+      height: 58px
+    }
+
+    .tile b {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 800
+    }
+
+    .tile .soon {
+      position: absolute;
+      top: -8px;
+      right: -4px;
+      font-size: 10px;
+      letter-spacing: .08em;
+      background: var(--ink);
+      color: var(--paper);
+      border-radius: 8px;
+      padding: 2px 6px
+    }
+
+    .tile.locked {
+      background: #E6EEF1
+    }
+
+    .tile.locked svg {
+      filter: grayscale(.8);
+      opacity: .7
+    }
+
+    .tile.sel,
+    .tile.peek {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--ink), 0 0 0 5px var(--orange)
+    }
+
+    .hpanel {
+      margin: 8px 16px 16px;
+      padding: 14px;
+      background: var(--paper);
+      border: 4px solid var(--ink);
+      border-radius: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .hpanel .t {
+      min-width: 0
+    }
+
+    .hpanel h3 {
+      font-family: var(--font-display);
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.05
+    }
+
+    .hpanel p {
+      margin: 4px 0 0;
+      font-size: 14px;
+      line-height: 1.3
+    }
+
+    /* intro */
+    #intro {
+      background: linear-gradient(var(--sky) 0 52%, var(--field) 52%)
+    }
+
+    #intro .msg {
+      margin: 18px 16px 0;
+      padding: 10px 14px;
+      background: var(--paper);
+      border: 4px solid var(--ink);
+      border-radius: 16px;
+      text-align: center
+    }
+
+    #intro .msg b {
+      font-family: var(--font-display);
+      font-size: 22px;
+      display: block
+    }
+
+    .hero.s2 {
+      left: 5%;
+      bottom: 12%;
+      transition: transform 1.5s cubic-bezier(.5, 0, .3, 1), opacity .4s
+    }
+
+    #intro .ballwrap {
+      width: min(84%, 340px);
+      right: 3%;
+      bottom: 10%
+    }
+
+    .pulse {
+      animation: pulse 1s infinite alternate;
+      transform-box: fill-box;
+      transform-origin: center
+    }
+
+    @keyframes pulse {
+      to {
+        transform: scale(1.16)
+      }
+    }
+
+    .hole {
+      cursor: pointer
+    }
+
+    /* play */
+    #play {
+      background: var(--paper)
+    }
+
+    .hud {
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--sky);
+      align-items: stretch
+    }
+
+    .chip {
+      flex: 1;
+      min-width: 0;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 12px;
+      padding: 3px 8px;
+      display: flex;
+      flex-direction: column;
+      line-height: 1
+    }
+
+    .chip small {
+      font-size: 10px;
+      letter-spacing: .1em;
+      font-weight: 800;
+      opacity: .7
+    }
+
+    .chip b {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-variant-numeric: tabular-nums
+    }
+
+    #scene {
+      position: relative;
+      flex: 0 0 34%;
+      min-height: 150px;
+      overflow: hidden;
+      border-block: 4px solid var(--ink)
+    }
+
+    .layer {
+      position: absolute;
+      left: 0;
+      right: 0
+    }
+
+    .far,
+    .mid {
+      top: 0;
+      bottom: 0
+    }
+
+    .floor {
+      bottom: 0;
+      height: 30%;
+      border-top: 4px solid var(--ink)
+    }
+
+    #scene[data-zone="in"] .far {
+      background: radial-gradient(ellipse at 50% 35%, #EEF67A 0, #C9DC2E 55%, #8FA51A 100%)
+    }
+
+    #scene[data-zone="in"] .mid {
+      background: repeating-linear-gradient(90deg, rgba(22, 48, 63, .16) 0 7px, transparent 7px 74px);
+      animation: scroll 1.3s linear infinite
+    }
+
+    #scene[data-zone="in"] .floor {
+      background: repeating-linear-gradient(90deg, #B7CB22 0 40px, #A3B81B 40px 80px);
+      animation: scroll2 .8s linear infinite
+    }
+
+    #scene[data-zone="out"] .far {
+      background: linear-gradient(#8FD3EE, #DDF4FA)
+    }
+
+    #scene[data-zone="out"] .mid {
+      background: radial-gradient(circle at 34px 34px, #fff 0 24px, transparent 25px), radial-gradient(circle at 66px 40px, #fff 0 19px, transparent 20px), radial-gradient(circle at 12px 42px, #fff 0 15px, transparent 16px);
+      background-size: 300px 110px;
+      background-repeat: repeat-x;
+      background-position: 0 18px;
+      animation: cloud 14s linear infinite
+    }
+
+    #scene[data-zone="out"] .floor {
+      background: repeating-linear-gradient(90deg, #6DBB3F 0 40px, #5DAA33 40px 80px);
+      animation: scroll2 .8s linear infinite
+    }
+
+    @keyframes scroll {
+      to {
+        background-position-x: -74px
+      }
+    }
+
+    @keyframes scroll2 {
+      to {
+        background-position-x: -80px
+      }
+    }
+
+    @keyframes cloud {
+      to {
+        background-position-x: -300px
+      }
+    }
+
+    #heroPlay {
+      left: 20%;
+      bottom: calc(30% - 14px)
+    }
+
+    #wipe {
+      position: absolute;
+      inset: 0;
+      background: var(--wc, #3A7BFF);
+      clip-path: circle(0% at 50% 60%);
+      transition: clip-path .5s ease-in-out;
+      z-index: 5;
+      pointer-events: none
+    }
+
+    #wipe.on {
+      clip-path: circle(150% at 50% 60%)
+    }
+
+    #tag {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      z-index: 3;
+      font-size: 12px;
+      font-weight: 800;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      border-radius: 10px;
+      padding: 2px 8px
+    }
+
+    #pop {
+      position: absolute;
+      left: 36%;
+      top: 22%;
+      z-index: 4;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 26px;
+      color: #fff;
+      text-shadow: 0 3px 0 var(--ink), 2px 0 0 var(--ink), -2px 0 0 var(--ink);
+      opacity: 0;
+      pointer-events: none
+    }
+
+    #pop.go {
+      animation: pop .9s ease-out
+    }
+
+    @keyframes pop {
+      0% {
+        opacity: 0;
+        transform: translateY(14px) scale(.7)
+      }
+
+      20% {
+        opacity: 1;
+        transform: translateY(0) scale(1.1)
+      }
+
+      80% {
+        opacity: 1
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-24px)
+      }
+    }
+
+    #panel {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 14px 14px
+    }
+
+    .ptop {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800
+    }
+
+    #cType {
+      font-family: var(--font-display);
+      font-size: 18px;
+      letter-spacing: .02em
+    }
+
+    #cHint {
+      opacity: .65;
+      text-align: right
+    }
+
+    #challenge {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center
+    }
+
+    #challenge.bad {
+      animation: shake .3s
+    }
+
+    @keyframes shake {
+      25% {
+        transform: translateX(-7px)
+      }
+
+      75% {
+        transform: translateX(7px)
+      }
+    }
+
+    .q {
+      margin: 0 0 12px;
+      text-align: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(24px, 8vw, 34px);
+      line-height: 1.1
+    }
+
+    .opts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    .opts.four {
+      grid-template-columns: repeat(4, 1fr)
+    }
+
+    .opt {
+      height: 56px;
+      min-width: 0;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 26px;
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: 14px;
+      box-shadow: 0 4px 0 var(--ink);
+      font-variant-numeric: tabular-nums
+    }
+
+    .opt:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 var(--ink)
+    }
+
+    .opt.good {
+      background: var(--mint)
+    }
+
+    .opt.bad,
+    .otile.bad,
+    .tile2.bad {
+      background: #FFD3D3;
+      opacity: .7
+    }
+
+    .otiles {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(var(--cols, 3), 1fr);
+      max-width: 340px;
+      margin: 0 auto;
+      width: 100%
+    }
+
+    .otile {
+      aspect-ratio: 1.25;
+      min-width: 0;
+      padding: 2px;
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: 14px;
+      box-shadow: 0 3px 0 var(--ink)
+    }
+
+    .otile svg {
+      width: 100%;
+      height: 100%;
+      display: block
+    }
+
+    .otile.good {
+      background: var(--mint)
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center
+    }
+
+    .tile2 {
+      min-width: 62px;
+      height: 56px;
+      padding: 0 10px;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 26px;
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: 14px;
+      box-shadow: 0 4px 0 var(--ink);
+      font-variant-numeric: tabular-nums
+    }
+
+    .tile2.done {
+      background: var(--mint);
+      box-shadow: none;
+      transform: translateY(3px)
+    }
+
+    .pads {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center
+    }
+
+    .pad {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--c);
+      border: 4px solid var(--ink);
+      box-shadow: 0 4px 0 var(--ink);
+      opacity: .55;
+      transition: transform .1s, opacity .1s, filter .1s
+    }
+
+    .pad.lit {
+      opacity: 1;
+      transform: scale(1.2);
+      filter: brightness(1.25) drop-shadow(0 0 10px var(--c))
+    }
+
+    .pad:not(:disabled) {
+      opacity: .9
+    }
+
+    .timer {
+      height: 14px;
+      border: 3px solid var(--ink);
+      border-radius: 9px;
+      background: #fff;
+      overflow: hidden;
+      flex: none
+    }
+
+    #tbar {
+      display: block;
+      height: 100%;
+      width: 100%;
+      background: var(--teal)
+    }
+
+    #panel.late #tbar {
+      background: var(--bad)
+    }
+
+    /* overlays */
+    .ovl {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      background: rgba(22, 48, 63, .62);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px
+    }
+
+    .card {
+      width: 100%;
+      max-width: 380px;
+      max-height: 100%;
+      overflow: auto;
+      background: var(--paper);
+      border: 4px solid var(--ink);
+      border-radius: 22px;
+      box-shadow: 0 8px 0 var(--ink);
+      padding: 16px;
+      text-align: center
+    }
+
+    .card h2 {
+      font-size: 30px
+    }
+
+    .card p {
+      margin: 8px 0
+    }
+
+    .card .ask {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 20px;
+      line-height: 1.15;
+      margin: 12px 0
+    }
+
+    .reveal {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      margin: 8px 0
+    }
+
+    .reveal .hero {
+      position: relative;
+      flex: none
+    }
+
+    .thought {
+      position: relative;
+      flex: 1;
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: 18px;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 1.25
+    }
+
+    .thought::before {
+      content: "";
+      position: absolute;
+      left: -14px;
+      bottom: 10px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--ink)
+    }
+
+    .prize {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 8px 0
+    }
+
+    .chest {
+      width: 104px
+    }
+
+    .chest .lid {
+      transition: transform .6s cubic-bezier(.3, 1.6, .5, 1);
+      transform-origin: 16px 46px
+    }
+
+    .chest.open .lid {
+      transform: rotate(-58deg)
+    }
+
+    .chest.open {
+      animation: hop .6s
+    }
+
+    @keyframes hop {
+      40% {
+        transform: translateY(-10px)
+      }
+    }
+
+    .gate {
+      width: 82px;
+      filter: drop-shadow(0 0 6px #FFD43B);
+      animation: glow 1.1s infinite alternate
+    }
+
+    @keyframes glow {
+      to {
+        filter: drop-shadow(0 0 16px #FFD43B)
+      }
+    }
+
+    .gline {
+      font-weight: 800;
+      font-size: 14px
+    }
+
+    /* demo bar */
+    #demoBar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      z-index: 40;
+      background: var(--ink);
+      color: var(--paper);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 10px
+    }
+
+    #demoBar .clk {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+      flex: none;
+      color: var(--sneak)
+    }
+
+    #demoBar .cap {
+      flex: 1;
+      min-width: 0;
+      font-size: 13px;
+      line-height: 1.15;
+      font-weight: 800
+    }
+
+    #demoBar button {
+      flex: none;
+      padding: 3px 10px;
+      font-size: 13px
+    }
+
+    body.demo .screen {
+      top: 48px
+    }
+
+    body.demo #app .screen,
+    body.demo #app .ovl .card {
+      pointer-events: none
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+
+      .hero *,
+      .layer,
+      .pulse,
+      .tapline,
+      .gate {
+        animation: none !important
+      }
+    }
+  </style>
+
+  <div id="app">
+    <div id="demoBar" hidden>
+      <span class="clk" id="clk">0:00 / 5:00</span>
+      <span class="cap" id="cap"></span>
+      <button class="ghost" id="btnStopDemo">Stop</button>
+    </div>
+
+    <section id="splash" class="screen" aria-label="Title screen">
+      <button class="ghost" id="btnDemo">Watch 5:00 demo</button>
+      <h1 class="logo">Tumble<span>Tiles</span></h1>
+      <div class="stagefield">
+        <div class="ballwrap" id="splashBall"></div>
+        <div class="hero s1 idle" id="splashHero"></div>
+      </div>
+      <div class="tapline">Tap to start</div>
+    </section>
+
+    <section id="home" class="screen" hidden aria-label="Mode select">
+      <div class="htop">
+        <h2>Pick a mode</h2><small id="bestTxt">Best level: 0</small>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="hpanel">
+        <div class="t">
+          <h3 id="pName">Choose a mode</h3>
+          <p id="pDesc">Tap an icon to see how it plays.</p>
+        </div>
+        <button class="cta" id="btnStart" disabled>Start</button>
+      </div>
+    </section>
+
+    <section id="intro" class="screen" hidden aria-label="Meet the explorer">
+      <div class="msg"><b>You control the explorer</b><span id="introHint">Tap the pulsing blue hole to run in.</span>
+      </div>
+      <div class="stagefield">
+        <div class="ballwrap" id="introBall"></div>
+        <div class="hero s2 idle" id="introHero"></div>
+      </div>
+    </section>
+
+    <section id="play" class="screen" hidden aria-label="Loop Ball">
+      <header class="hud">
+        <div class="chip"><small>LEVEL</small><b id="hLevel">1</b></div>
+        <div class="chip"><small>SCORE</small><b id="hScore">0</b></div>
+        <div class="chip"><small>STREAK</small><b id="hStreak">0</b></div>
+        <button class="ghost" id="btnQuit">Home</button>
+      </header>
+      <div id="scene" data-zone="out">
+        <div class="layer far"></div>
+        <div class="layer mid"></div>
+        <div class="layer floor"></div>
+        <div class="hero idle" id="heroPlay"></div>
+        <div id="tag">Challenge <b id="cNo">1</b> · tunnel length ???</div>
+        <div id="pop"></div>
+        <div id="wipe"></div>
+      </div>
+      <div id="panel">
+        <div class="ptop"><span id="cType"></span><span id="cHint">Faster solving shortens the tunnel</span></div>
+        <div id="challenge"></div>
+        <div class="timer"><i id="tbar"></i></div>
+      </div>
+      <div class="ovl" id="ov" hidden></div>
+    </section>
+
+    <div class="ovl" id="endcard" hidden>
+      <div class="card">
+        <h2>End of the 5:00 run</h2>
+        <p id="endTxt"></p>
+        <button class="cta" id="btnPlayNow">Play it yourself</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+      var $ = function (s) { return document.querySelector(s) };
+      var HOLES = { blue: '#3A7BFF', green: '#2ECC71', orange: '#FF8A1F', purple: '#8E5BFF', pink: '#FF5FA2' };
+      var HN = Object.keys(HOLES);
+      function rnd(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a }
+      function pick(a) { return a[Math.floor(Math.random() * a.length)] }
+      function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(0, i); var t = a[i]; a[i] = a[j]; a[j] = t } return a }
+      function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms) }) }
+
+      /* ---------- art ---------- */
+      var HERO = '<svg viewBox="0 -8 100 148" aria-hidden="true"><g class="bob">'
+        + '<rect x="12" y="52" width="28" height="40" rx="10" fill="#9FE8C8" stroke="#16303F" stroke-width="3.5"/>'
+        + '<rect x="16" y="60" width="14" height="10" rx="3" fill="#7DD3AE" stroke="#16303F" stroke-width="2.5"/>'
+        + '<g class="lb"><rect x="44" y="90" width="12" height="26" rx="6" fill="#13897E" stroke="#16303F" stroke-width="3.5"/><ellipse cx="55" cy="121" rx="14" ry="7" fill="#FFD43B" stroke="#16303F" stroke-width="3.5"/></g>'
+        + '<rect x="36" y="52" width="38" height="42" rx="15" fill="#1FB5A8" stroke="#16303F" stroke-width="3.5"/>'
+        + '<g class="la"><rect x="44" y="90" width="12" height="26" rx="6" fill="#1FB5A8" stroke="#16303F" stroke-width="3.5"/><ellipse cx="55" cy="121" rx="14" ry="7" fill="#FFD43B" stroke="#16303F" stroke-width="3.5"/></g>'
+        + '<g class="arm"><rect x="58" y="58" width="11" height="26" rx="5.5" fill="#1FB5A8" stroke="#16303F" stroke-width="3.5"/></g>'
+        + '<circle cx="58" cy="34" r="25" fill="#26C6B8" stroke="#16303F" stroke-width="3.5"/>'
+        + '<path d="M45 14 C39 0 52 -6 56 6 C58 -6 72 -4 68 12 Z" fill="#F58A2B" stroke="#16303F" stroke-width="3.5" stroke-linejoin="round"/>'
+        + '<circle cx="69" cy="32" r="3.6" fill="#16303F"/><circle cx="70.2" cy="30.8" r="1.1" fill="#fff"/>'
+        + '<path d="M62 44 Q70 51 78 43" fill="none" stroke="#16303F" stroke-width="3" stroke-linecap="round"/>'
+        + '</g></svg>';
+      function heroInto(el) { el.innerHTML = HERO }
+
+      var HPOS = { blue: [58, 210], green: [100, 78], orange: [196, 52], purple: [248, 140], pink: [210, 232] };
+      function ballSVG(uid, pulseBlue) {
+        var h = '';
+        HN.forEach(function (n) {
+          var p = HPOS[n];
+          h += '<g class="hole' + (pulseBlue && n === 'blue' ? ' pulse' : '') + '" data-hole="' + n + '"><ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="19" ry="24" fill="#16303F" stroke="' + HOLES[n] + '" stroke-width="7"/><ellipse cx="' + (p[0] + 3) + '" cy="' + (p[1] + 4) + '" rx="9" ry="13" fill="#0B1B25"/></g>';
+        });
+        return '<svg class="ballsvg" viewBox="0 0 300 300" aria-hidden="true"><defs><radialGradient id="felt' + uid + '" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#F0F77F"/><stop offset=".6" stop-color="#D5E83A"/><stop offset="1" stop-color="#93A91B"/></radialGradient></defs>'
+          + '<ellipse cx="150" cy="288" rx="112" ry="11" fill="#16303F" opacity=".18"/>'
+          + '<circle cx="150" cy="150" r="132" fill="url(#felt' + uid + ')" stroke="#16303F" stroke-width="5"/>'
+          + '<path d="M42 62 C112 118 112 182 42 238" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".9"/>'
+          + '<path d="M258 62 C188 118 188 182 258 238" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".9"/>'
+          + h + '</svg>';
+      }
+
+      var ICONS = {
+        loop: '<svg viewBox="0 0 64 64"><circle cx="32" cy="33" r="24" fill="#D5E83A" stroke="#16303F" stroke-width="3.5"/><path d="M14 19c12 8 12 20 0 28M50 19c-12 8-12 20 0 28" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><ellipse cx="38" cy="24" rx="5" ry="6.5" fill="#16303F" stroke="#3A7BFF" stroke-width="3"/></svg>',
+        tiles: '<svg viewBox="0 0 64 64"><g stroke="#16303F" stroke-width="3"><rect x="6" y="6" width="16" height="16" rx="3" fill="#3A7BFF"/><rect x="24" y="6" width="16" height="16" rx="3" fill="#FF5FA2"/><rect x="42" y="6" width="16" height="16" rx="3" fill="#2ECC71"/><rect x="6" y="24" width="16" height="16" rx="3" fill="#FFD43B"/><rect x="24" y="24" width="16" height="16" rx="3" fill="#8E5BFF"/><rect x="42" y="24" width="16" height="16" rx="3" fill="#FF8A1F"/><rect x="6" y="42" width="16" height="16" rx="3" fill="#2ECC71"/><rect x="24" y="42" width="16" height="16" rx="3" fill="#3A7BFF"/></g></svg>',
+        maze: '<svg viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="10" fill="#BFE8F5" stroke="#16303F" stroke-width="3.5"/><path d="M12 12H52V52H20V22H44V44H28V30H36" fill="none" stroke="#1FB5A8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        moon: '<svg viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="12" fill="#2B3F6B" stroke="#16303F" stroke-width="3.5"/><path d="M40 12a21 21 0 1 0 12 34a17 17 0 0 1-12-34z" fill="#FFD43B" stroke="#16303F" stroke-width="3"/><circle cx="46" cy="20" r="2.5" fill="#fff"/><circle cx="52" cy="30" r="2" fill="#fff"/></svg>',
+        stack: '<svg viewBox="0 0 64 64"><g stroke="#16303F" stroke-width="3.5"><rect x="12" y="42" width="40" height="16" rx="3" fill="#FF8A1F"/><rect x="18" y="26" width="34" height="16" rx="3" fill="#8E5BFF"/><rect x="14" y="10" width="28" height="16" rx="3" fill="#FF5FA2"/></g></svg>',
+        wind: '<svg viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="12" fill="#DDF4FA" stroke="#16303F" stroke-width="3.5"/><g fill="none" stroke="#16303F" stroke-width="4" stroke-linecap="round"><path d="M12 24H38a7 7 0 1 0-7-7"/><path d="M12 34H46a7 7 0 1 1-7 7"/><path d="M12 44H28"/></g></svg>'
+      };
+      var MODES = [
+        { id: 'loop', name: 'Loop Ball', icon: 'loop', open: true, desc: 'Run a tunnel with no known length. Solve fast to finish sooner. Levels never end.' },
+        { id: 'tiles', name: 'Tile Rush', icon: 'tiles', open: false, desc: 'Coming soon.' },
+        { id: 'maze', name: 'Color Maze', icon: 'maze', open: false, desc: 'Coming soon.' },
+        { id: 'moon', name: 'Memory Moon', icon: 'moon', open: false, desc: 'Coming soon.' },
+        { id: 'stack', name: 'Sky Stack', icon: 'stack', open: false, desc: 'Coming soon.' },
+        { id: 'wind', name: 'Word Wind', icon: 'wind', open: false, desc: 'Coming soon.' }
+      ];
+      function chestSVG(open) {
+        return '<svg viewBox="0 0 120 100" class="chest' + (open ? ' open' : '') + '" aria-hidden="true"><ellipse cx="60" cy="93" rx="44" ry="6" fill="#16303F" opacity=".18"/>'
+          + '<rect x="18" y="46" width="84" height="42" rx="6" fill="#B86B2B" stroke="#16303F" stroke-width="4"/>'
+          + (open ? '<g fill="#FFD43B" stroke="#16303F" stroke-width="2.5"><circle cx="44" cy="44" r="8"/><circle cx="62" cy="40" r="8"/><circle cx="78" cy="45" r="8"/></g>' : '')
+          + '<rect x="54" y="58" width="12" height="16" rx="3" fill="#FFD43B" stroke="#16303F" stroke-width="3"/>'
+          + '<g class="lid"><path d="M16 46 Q16 16 60 16 Q104 16 104 46 Z" fill="#D98A3D" stroke="#16303F" stroke-width="4"/></g></svg>';
+      }
+      var GATE = '<svg viewBox="0 0 120 110" class="gate" aria-hidden="true"><path d="M26 104V52Q26 14 60 14Q94 14 94 52V104Z" fill="#FFF3A8" stroke="#16303F" stroke-width="7"/><path d="M42 104V56Q42 32 60 32Q78 32 78 56V104Z" fill="#fff"/><circle cx="60" cy="8" r="5" fill="#FFD43B" stroke="#16303F" stroke-width="3"/></svg>';
+
+      /* ---------- state ---------- */
+      var S = { level: 1, score: 0, streak: 0, best: 0, mastery: 0, chCount: 0, toggles: [], ti: 0, holes: [], zone: 'out', lastType: '', times: [], detours: 0, thr: 3.2 };
+      try { S.best = +localStorage.getItem('tt_best') || 0 } catch (e) { }
+      var gen = 0, chId = 0, tStart = 0, tBudget = 10, locked = false, wrongs = 0, lateT = null, cur = null, selMode = null;
+      var demo = { on: false, id: 0, t0: 0, iv: null };
+
+      function show(id) { document.querySelectorAll('.screen').forEach(function (s) { s.hidden = s.id !== id }) }
+      function hud() { $('#hLevel').textContent = S.level; $('#hScore').textContent = S.score; $('#hStreak').textContent = S.streak; $('#bestTxt').textContent = 'Best level: ' + S.best }
+      function pop(t) { var p = $('#pop'); p.textContent = t; p.classList.remove('go'); void p.offsetWidth; p.classList.add('go') }
+      function cap(t) { if (demo.on) $('#cap').textContent = t }
+
+      /* ---------- splash / home / intro ---------- */
+      $('#splashBall').innerHTML = ballSVG('a', false);
+      heroInto($('#splashHero'));
+      $('#splash').addEventListener('click', function (e) { if (e.target.id === 'btnDemo') return; toHome() });
+      function toHome() { hud(); show('home') }
+
+      var grid = $('#grid');
+      MODES.forEach(function (m) {
+        var b = document.createElement('button');
+        b.className = 'tile' + (m.open ? '' : ' locked'); b.dataset.mode = m.id;
+        b.innerHTML = ICONS[m.icon] + '<b>' + m.name + '</b>' + (m.open ? '' : '<span class="soon">SOON</span>');
+        b.addEventListener('click', function () { selectMode(m.id) });
+        grid.appendChild(b);
+      });
+      function selectMode(id) {
+        var m = MODES.filter(function (x) { return x.id === id })[0];
+        document.querySelectorAll('.tile').forEach(function (t) { t.classList.toggle('sel', t.dataset.mode === id) });
+        $('#pName').textContent = m.name; $('#pDesc').textContent = m.desc;
+        selMode = m.open ? m.id : null; $('#btnStart').disabled = !m.open;
+      }
+      $('#btnStart').addEventListener('click', function () {
+        if (selMode !== 'loop') return;
+        S.level = 1; S.score = 0; S.streak = 0; hud(); toIntro();
+      });
+
+      function toIntro() {
+        var ib = $('#introBall'); ib.innerHTML = ballSVG('b', true);
+        var h = $('#introHero'); heroInto(h); h.className = 'hero s2 idle'; h.style.transform = ''; h.style.opacity = '1';
+        $('#introHint').textContent = 'Tap the pulsing blue hole to run in.';
+        introDone = false; show('intro');
+      }
+      var introDone = false;
+      $('#introBall').addEventListener('click', function (e) {
+        var g = e.target.closest && e.target.closest('.hole');
+        if (g && g.dataset.hole === 'blue') walkIn();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (!$('#intro').hidden && (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); walkIn() }
+        if (!$('#splash').hidden && e.key === 'Enter') toHome();
+      });
+      function walkIn() {
+        if (introDone) return; introDone = true;
+        var hole = $('#introBall .hole[data-hole="blue"] ellipse'), h = $('#introHero');
+        var a = hole.getBoundingClientRect(), b = h.getBoundingClientRect();
+        var dx = a.left + a.width / 2 - (b.left + b.width / 2), dy = a.top + a.height / 2 - (b.top + b.height * .75);
+        h.classList.remove('idle'); $('#introHint').textContent = 'Running in…';
+        h.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(.28)';
+        setTimeout(function () { h.style.opacity = '0' }, 1150);
+        setTimeout(function () { beginPlay() }, 1600);
+      }
+
+      /* ---------- loop engine ---------- */
+      function beginPlay() {
+        gen++;
+        var sc = $('#scene'); sc.dataset.zone = 'out'; S.zone = 'out';
+        var hp = $('#heroPlay'); heroInto(hp); hp.classList.add('idle');
+        $('#ov').hidden = true; show('play'); hud();
+        startLoop();
+      }
+      function planLoop() {
+        var L = S.level; S.mastery = 0; S.chCount = 0; S.ti = 0; S.times = [];
+        S.thr = 3.2 + 0.1 * Math.min(L, 8);
+        var D = L < 3 ? 1 : (Math.random() < .45 ? 2 : 1); S.detours = D;
+        var t = [], pos = rnd(1, 2);
+        for (var d = 0; d < D; d++) { var len = rnd(1, 2); t.push(pos, pos + len); pos += len + rnd(1, 2) }
+        S.toggles = t; S.holes = [];
+        var others = HN.filter(function (h) { return h !== 'blue' }), prev = 'blue';
+        for (var i = 0; i <= t.length; i++) { var h = pick(others.filter(function (o) { return o !== prev })); S.holes.push(h); prev = h }
+      }
+      async function zoneTo(to, hole) {
+        var g = gen, w = $('#wipe');
+        w.style.setProperty('--wc', HOLES[hole]);
+        w.classList.add('on'); await sleep(540); if (g !== gen) return false;
+        $('#scene').dataset.zone = to; S.zone = to;
+        w.classList.remove('on'); await sleep(540);
+        return g === gen;
+      }
+      async function startLoop() {
+        var g = gen; planLoop();
+        cap('Level ' + S.level + ': the number of challenges is hidden');
+        $('#cNo').textContent = 1;
+        await sleep(300);
+        if (!(await zoneTo('in', 'blue'))) return;
+        $('#heroPlay').classList.remove('idle');
+        nextChallenge();
+      }
+      function nextChallenge() {
+        $('#cNo').textContent = S.chCount + 1;
+        runChallenge();
+      }
+      function afterSolve() {
+        var g = gen;
+        if (S.toggles[S.ti] === S.chCount) return doToggle();
+        var done = S.ti >= S.toggles.length && S.zone === 'in' && S.chCount >= 3 && (S.mastery >= S.thr || S.chCount >= 12);
+        if (done) return finishLoop();
+        nextChallenge();
+      }
+      async function doToggle() {
+        var g = gen, hole = S.holes[S.ti]; S.ti++;
+        var to = S.zone === 'in' ? 'out' : 'in';
+        cap(to === 'out' ? 'The tunnel slips outside the ball. The explorer keeps running.' : 'Back inside the ball. It feels like one tunnel.');
+        if (!(await zoneTo(to, hole))) return;
+        nextChallenge();
+      }
+      async function finishLoop() {
+        var g = gen; cap('Out of the last hole. Did the player notice the detour?');
+        if (!(await zoneTo('out', S.holes[S.holes.length - 1]))) return;
+        $('#heroPlay').classList.add('idle');
+        $('#cType').textContent = 'Loop complete';
+        showResult();
+      }
+      function showResult() {
+        var n = S.chCount, avg = (S.times.reduce(function (a, b) { return a + b }, 0) / Math.max(1, n)).toFixed(1);
+        var ov = $('#ov');
+        ov.innerHTML = '<div class="card"><h2>Out of the ball!</h2><p>That tunnel was <b>' + n + ' challenges</b> long. You averaged ' + avg + ' s each.</p><p class="ask">How many times did the path slip outside the ball?</p><div class="opts four">' + [0, 1, 2, 3].map(function (i) { return '<button class="opt" data-n="' + i + '">' + i + '</button>' }).join('') + '</div></div>';
+        ov.hidden = false;
+        ov.querySelectorAll('.opt').forEach(function (b) { b.addEventListener('click', function () { answerLoop(+b.dataset.n) }) });
+        if (demo.on) { var g = gen; setTimeout(function () { if (!demo.on || g !== gen) return; var b = ov.querySelector('.opt[data-n="' + S.detours + '"]'); if (b) b.click() }, 3200) }
+      }
+      function answerLoop(n) {
+        var ok = n === S.detours, D = S.detours, g = gen;
+        var bonus = ok ? 150 + 50 * S.level : 0; S.score += bonus;
+        var done = S.level; S.level++; if (S.level > S.best) { S.best = S.level; try { localStorage.setItem('tt_best', S.best) } catch (e) { } }
+        hud();
+        var s = D === 1 ? 'time' : 'times';
+        var say = ok ? 'Wait… the tunnel slipped outside ' + D + ' ' + s + ' and came back in! I figured it out.' : 'Oh! The tunnel slipped outside ' + D + ' ' + s + '. I never noticed.';
+        var prize = ok ? '<div class="prize">' + chestSVG(false) + '<div class="disp" style="font-size:26px">+' + bonus + '</div></div>' : '<p class="gline">No chest this time. Watch for the sky.</p>';
+        var ov = $('#ov');
+        ov.innerHTML = '<div class="card"><h2>Level ' + done + ' clear</h2><div class="reveal"><div class="hero idle" id="revHero"></div><div class="thought">' + say + '</div></div>' + prize
+          + '<div class="prize">' + GATE + '<div class="gline">The gate to level ' + S.level + ' is glowing.</div></div><button class="cta" id="btnNext">Enter level ' + S.level + '</button></div>';
+        heroInto($('#revHero'));
+        if (ok) setTimeout(function () { var c = ov.querySelector('.chest'); if (c) c.classList.add('open') }, 350);
+        $('#btnNext').addEventListener('click', function () { ov.hidden = true; $('#cType').textContent = ''; startLoop() });
+        cap(ok ? 'Spotted it: the treasure chest opens and the next gate glows.' : 'The gate to the next level glows.');
+        if (demo.on) setTimeout(function () { if (!demo.on || g !== gen) return; var b = $('#btnNext'); if (b) b.click() }, 4800);
+      }
+
+      /* ---------- challenge host ---------- */
+      var api = {
+        start: function (T) {
+          tBudget = T; tStart = performance.now();
+          var b = $('#tbar'); b.style.transition = 'none'; b.style.width = '100%'; void b.offsetWidth;
+          b.style.transition = 'width ' + T + 's linear'; b.style.width = '0%';
+          $('#panel').classList.remove('late'); clearTimeout(lateT);
+          lateT = setTimeout(function () { $('#panel').classList.add('late') }, T * 1000);
+        },
+        right: function () {
+          if (locked) return; locked = true; clearTimeout(lateT);
+          var b = $('#tbar'), w = getComputedStyle(b).width; b.style.transition = 'none'; b.style.width = w;
+          var el = (performance.now() - tStart) / 1000, r = el / tBudget;
+          var tier = r <= .4 ? 'fast' : (r <= 1 ? 'ok' : 'slow');
+          var gain = { fast: 1, ok: .7, slow: .4 }[tier]; gain = Math.max(.1, gain - .25 * wrongs);
+          S.mastery += gain;
+          var base = { fast: 100, ok: 60, slow: 30 }[tier], pts = Math.round(base * (1 + Math.min(S.streak, 9) * .1));
+          S.score += pts; S.streak++; S.chCount++; S.times.push(el); hud();
+          pop('+' + pts + (tier === 'fast' ? ' Lightning!' : tier === 'ok' ? ' Nice!' : ''));
+          var g = gen; setTimeout(function () { if (g === gen) afterSolve() }, 750);
+        },
+        wrong: function () {
+          if (locked) return; wrongs++; S.streak = 0; hud();
+          var c = $('#challenge'); c.classList.remove('bad'); void c.offsetWidth; c.classList.add('bad');
+        }
+      };
+      var LABEL = { math: 'Quick maths', pattern: 'Pattern', odd: 'Odd one out', memory: 'Light memory', sort: 'Sort the tiles' };
+      function runChallenge() {
+        var L = S.level; chId++; locked = false; wrongs = 0; clearTimeout(lateT);
+        var b = $('#tbar'); b.style.transition = 'none'; b.style.width = '100%'; $('#panel').classList.remove('late');
+        var types = ['math', 'pattern', 'odd', 'memory', 'sort'].filter(function (t) { return t !== S.lastType && (t !== 'memory' || L >= 2) });
+        var t = pick(types); S.lastType = t;
+        $('#cType').textContent = LABEL[t];
+        var host = $('#challenge'); host.className = '';
+        cur = CH[t](host, L, api);
+        if (demo.on) {
+          var g = gen, id = chId, wf = Math.random() < .2;
+          (async function () {
+            if (cur.ready) await cur.ready;
+            await sleep(rnd(2200, 5200));
+            if (!demo.on || g !== gen || id !== chId) return;
+            await cur.auto(wf);
+          })();
+        }
+      }
+      function options(ans) {
+        var s = [ans], g = 0;
+        while (s.length < 4 && g++ < 60) { var d = rnd(1, Math.max(3, Math.ceil(Math.abs(ans) * .2))) * (Math.random() < .5 ? -1 : 1), v = ans + d; if (v > 0 && s.indexOf(v) < 0) s.push(v) }
+        var k = 1; while (s.length < 4) { if (s.indexOf(ans + k) < 0) s.push(ans + k); k++ }
+        return shuffle(s);
+      }
+      function optGrid(host, q, opts, ans, T) {
+        host.innerHTML = '<p class="q">' + q + '</p><div class="opts">' + opts.map(function (o) { return '<button class="opt"' + (o === ans ? ' data-ok="1"' : '') + '>' + o + '</button>' }).join('') + '</div>';
+        host.querySelectorAll('.opt').forEach(function (b) {
+          b.addEventListener('click', function () {
+            if (b.dataset.ok) { b.classList.add('good'); api.right() } else { b.disabled = true; b.classList.add('bad'); api.wrong() }
+          })
+        });
+        api.start(T);
+        return {
+          auto: async function (wf) {
+            if (wf) { var bad = host.querySelector('.opt:not([data-ok]):not(:disabled)'); if (bad) { bad.click(); await sleep(800) } }
+            var ok = host.querySelector('[data-ok]'); if (ok) ok.click();
+          }
+        };
+      }
+      function shapeSVG(kind, color) {
+        var f = 'fill="' + color + '" stroke="#16303F" stroke-width="2.5" stroke-linejoin="round"', s;
+        if (kind === 'circle') s = '<circle cx="20" cy="20" r="14" ' + f + '/>';
+        else if (kind === 'square') s = '<rect x="7" y="7" width="26" height="26" rx="4" ' + f + '/>';
+        else if (kind === 'tri') s = '<polygon points="20,5 35,33 5,33" ' + f + '/>';
+        else s = '<polygon points="20,4 36,20 20,36 4,20" ' + f + '/>';
+        return '<svg viewBox="0 0 40 40" aria-hidden="true">' + s + '</svg>';
+      }
+      var CH = {
+        math: function (host, L) {
+          var a, b, c, q, ans, T = Math.max(6, 13 - L * .5);
+          if (L <= 2) { a = rnd(3, 9 + L * 3); b = rnd(2, 9 + L * 2); q = a + ' + ' + b; ans = a + b }
+          else if (L <= 4) { a = rnd(12, 30 + L * 5); b = rnd(3, a - 2); q = a + ' − ' + b; ans = a - b }
+          else if (L <= 7) { a = rnd(3, 6 + L); b = rnd(3, 9); q = a + ' × ' + b; ans = a * b }
+          else { a = rnd(3, 9); b = rnd(3, 9); var op = pick(['+', '−']); c = op === '+' ? rnd(2, 20) : rnd(2, Math.min(20, a * b - 1)); q = a + ' × ' + b + ' ' + op + ' ' + c; ans = op === '+' ? a * b + c : a * b - c; T += 3 }
+          return optGrid(host, q + ' = ?', options(ans), ans, T);
+        },
+        pattern: function (host, L) {
+          var seq = [], ans, T = Math.max(8, 15 - L * .5);
+          if (L <= 2) { var s = rnd(1, 10), st = rnd(2, 5); for (var i = 0; i < 5; i++)seq.push(s + st * i) }
+          else if (L <= 5) { var x = rnd(1, 9), p = rnd(2, 5), r = rnd(6, 9); seq = [x]; for (var j = 1; j < 6; j++)seq.push(seq[j - 1] + (j % 2 ? p : r)) }
+          else if (L <= 8) { var g0 = rnd(1, 4), m = pick([2, 3]); for (var k = 0; k < 5; k++)seq.push(g0 * Math.pow(m, k)) }
+          else { var f1 = rnd(1, 5), f2 = rnd(2, 6); seq = [f1, f2]; for (var n = 2; n < 6; n++)seq.push(seq[n - 1] + seq[n - 2]) }
+          ans = seq.pop();
+          return optGrid(host, seq.join(', ') + ', ?', options(ans), ans, T);
+        },
+        odd: function (host, L) {
+          var n = L < 3 ? 6 : L < 6 ? 8 : L < 9 ? 9 : 12, cols = (n === 6 || n === 9) ? 3 : 4, T = Math.max(7, 13 - L * .4);
+          var kinds = ['circle', 'square', 'tri', 'diamond'], hue = rnd(0, 359);
+          var base = pick(kinds), oddKind = pick(kinds.filter(function (k) { return k !== base }));
+          var delta = Math.max(12, 50 - L * 4), bc = 'hsl(' + hue + ',70%,55%)', oc = 'hsl(' + ((hue + delta) % 360) + ',70%,55%)';
+          var oi = rnd(0, n - 1), html = '';
+          for (var i = 0; i < n; i++) {
+            var isOdd = i === oi, svg;
+            if (L < 3) svg = shapeSVG(isOdd ? oddKind : base, bc); else svg = shapeSVG(base, isOdd ? oc : bc);
+            html += '<button class="otile"' + (isOdd ? ' data-ok="1"' : '') + ' aria-label="shape">' + svg + '</button>';
+          }
+          host.innerHTML = '<p class="q">Tap the odd one out</p><div class="otiles" style="--cols:' + cols + '">' + html + '</div>';
+          host.querySelectorAll('.otile').forEach(function (b) {
+            b.addEventListener('click', function () {
+              if (b.dataset.ok) { b.classList.add('good'); api.right() } else { b.disabled = true; b.classList.add('bad'); api.wrong() }
+            })
+          });
+          api.start(T);
+          return {
+            auto: async function (wf) {
+              if (wf) { var bad = host.querySelector('.otile:not([data-ok]):not(:disabled)'); if (bad) { bad.click(); await sleep(800) } }
+              var ok = host.querySelector('[data-ok]'); if (ok) ok.click();
+            }
+          };
+        },
+        memory: function (host, L) {
+          var len = Math.min(3 + Math.floor((L - 1) / 3), 7), seq = [], my = chId;
+          while (seq.length < len) { var h = pick(HN); if (h !== seq[seq.length - 1]) seq.push(h) }
+          host.innerHTML = '<p class="q" id="mq">Watch the lights</p><div class="pads">' + HN.map(function (h) { return '<button class="pad" data-h="' + h + '" style="--c:' + HOLES[h] + '" aria-label="' + h + '" disabled></button>' }).join('') + '</div>';
+          var pads = [].slice.call(host.querySelectorAll('.pad')), idx = 0, input = false, res;
+          var ready = new Promise(function (r) { res = r });
+          (async function () {
+            await sleep(600);
+            for (var i = 0; i < seq.length; i++) {
+              if (my !== chId) return;
+              var p = pads.filter(function (x) { return x.dataset.h === seq[i] })[0];
+              p.classList.add('lit'); await sleep(480); p.classList.remove('lit'); await sleep(200);
+            }
+            if (my !== chId) return;
+            input = true; pads.forEach(function (p) { p.disabled = false });
+            var q = host.querySelector('#mq'); if (q) q.textContent = 'Your turn: repeat it';
+            api.start(len * 1.4 + 3); res();
+          })();
+          pads.forEach(function (p) {
+            p.addEventListener('click', function () {
+              if (!input || locked) return;
+              p.classList.add('lit'); setTimeout(function () { p.classList.remove('lit') }, 160);
+              if (p.dataset.h === seq[idx]) { idx++; if (idx === len) api.right() } else { idx = 0; api.wrong() }
+            })
+          });
+          return {
+            ready: ready, auto: async function () {
+              for (var i = 0; i < len; i++) {
+                if (my !== chId) return;
+                pads.filter(function (x) { return x.dataset.h === seq[i] })[0].click(); await sleep(460);
+              }
+            }
+          };
+        },
+        sort: function (host, L) {
+          var n = Math.min(4 + Math.floor(L / 3), 7), asc = L < 3 || Math.random() < .7, T = Math.max(8, 12 - L * .3) + n * .6;
+          var set = []; while (set.length < n) { var v = rnd(1, 20 + L * 10); if (set.indexOf(v) < 0) set.push(v) }
+          var order = set.slice().sort(function (a, b) { return asc ? a - b : b - a }), idx = 0;
+          host.innerHTML = '<p class="q">' + (asc ? 'Tap smallest to biggest' : 'Tap biggest to smallest') + '</p><div class="row">' + shuffle(set).map(function (v) { return '<button class="tile2" data-v="' + v + '">' + v + '</button>' }).join('') + '</div>';
+          host.querySelectorAll('.tile2').forEach(function (b) {
+            b.addEventListener('click', function () {
+              if (locked || b.classList.contains('done')) return;
+              if (+b.dataset.v === order[idx]) { b.classList.add('done'); idx++; if (idx === n) api.right() }
+              else { b.classList.add('bad'); setTimeout(function () { b.classList.remove('bad') }, 350); api.wrong() }
+            })
+          });
+          api.start(T);
+          return {
+            auto: async function () {
+              for (var i = 0; i < n; i++) {
+                var b = host.querySelector('.tile2[data-v="' + order[i] + '"]'); if (!b || locked) return; b.click(); await sleep(480);
+              }
+            }
+          };
+        }
+      };
+
+      $('#btnQuit').addEventListener('click', function () {
+        gen++; chId++; clearTimeout(lateT); $('#ov').hidden = true; $('#wipe').classList.remove('on'); hud(); show('home');
+      });
+
+      /* ---------- 5:00 autopilot demo (screen-record this) ---------- */
+      function fmt(s) { s = Math.floor(s); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2) }
+      async function dw(ms) { var id = demo.id; await sleep(ms); if (!demo.on || id !== demo.id) throw new Error('stop') }
+      async function runDemo() {
+        gen++; chId++; demo.on = true; demo.id++; demo.t0 = performance.now();
+        document.body.classList.add('demo'); $('#demoBar').hidden = false; $('#endcard').hidden = true;
+        clearInterval(demo.iv);
+        demo.iv = setInterval(function () {
+          var t = (performance.now() - demo.t0) / 1000; $('#clk').textContent = fmt(Math.min(t, 300)) + ' / 5:00';
+          if (t >= 300) endDemo(true);
+        }, 300);
+        S.level = 1; S.score = 0; S.streak = 0; hud(); selMode = null; $('#btnStart').disabled = true;
+        document.querySelectorAll('.tile').forEach(function (t) { t.classList.remove('sel', 'peek') });
+        $('#pName').textContent = 'Choose a mode'; $('#pDesc').textContent = 'Tap an icon to see how it plays.';
+        $('#ov').hidden = true;
+        try {
+          show('splash'); cap('Title screen. The player taps to start.'); await dw(4000);
+          toHome(); cap('Home page: every mode has its own icon.'); await dw(2500);
+          var tiles = [].slice.call(document.querySelectorAll('.tile'));
+          for (var i = 0; i < tiles.length; i++) { tiles[i].classList.add('peek'); await dw(1000); tiles[i].classList.remove('peek') }
+          cap('The player picks Loop Ball.'); tiles[0].click(); await dw(3500);
+          cap('Press Start.'); await dw(1800); $('#btnStart').click();
+          cap('The explorer is handed to the player. Run into the blue hole.'); await dw(5000);
+          walkIn(); cap('Running into the ball…');
+        } catch (e) { }
+      }
+      function endDemo(finished) {
+        demo.on = false; demo.id++; clearInterval(demo.iv); gen++; chId++; clearTimeout(lateT);
+        document.body.classList.remove('demo'); $('#demoBar').hidden = true;
+        if (finished) { $('#endTxt').textContent = 'Reached level ' + S.level + ' with ' + S.score + ' points. The number of challenges in each loop depended on how fast the explorer solved.'; $('#endcard').hidden = false }
+        else { $('#ov').hidden = true; $('#wipe').classList.remove('on'); show('splash') }
+      }
+      $('#btnDemo').addEventListener('click', function (e) { e.stopPropagation(); runDemo() });
+      $('#btnStopDemo').addEventListener('click', function () { endDemo(false) });
+      $('#btnPlayNow').addEventListener('click', function () { $('#endcard').hidden = true; S.level = 1; S.score = 0; S.streak = 0; hud(); show('home') });
+
+      hud(); show('splash');
+    })();
+  </script>
+
+</body>
+
+</html>
